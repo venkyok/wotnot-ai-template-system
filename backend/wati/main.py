@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from .database import database
 from .routes import user, broadcast, contacts, auth, woocommerce, integration, wallet,analytics
 from .routes import ai
@@ -55,6 +56,15 @@ app.include_router(woocommerce.router)
 app.include_router(integration.router)
 app.include_router(analytics.router)
 app.include_router(ai.router)
+
+# Railway health check endpoints
+@app.get("/")
+def read_root():
+    return {"message": "Wotnot AI Template System API", "status": "running", "docs": "/docs"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "wotnot-backend", "timestamp": datetime.now().isoformat()}
 
 # Defining origins for CORS
 

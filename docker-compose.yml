@@ -9,39 +9,51 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/wotnot
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-key}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key-min-32-chars}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
     depends_on:
       - db
-    volumes:
-      - ./backend:/app
-    command: uvicorn wati.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   frontend:
     build:
       context: ./frontend/app
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
-    volumes:
-      - ./frontend/app:/app
-      - /app/node_modules
-    command: npm run serve
+      - VUE_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
 
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     environment:
       - POSTGRES_DB=wotnot
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
+    driver: local

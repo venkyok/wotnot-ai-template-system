@@ -1,0 +1,4 @@
+# Just the absolute essentials with latest wheel versions
+fastapi
+uvicorn
+python-dotenv

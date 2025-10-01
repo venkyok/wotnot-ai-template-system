@@ -2,8 +2,8 @@ services:
   - type: web
     name: wotnot-backend
     runtime: python
-    buildCommand: "cd backend && pip install -r requirements-render.txt"
-    startCommand: "cd backend && python -m uvicorn direct_main:app --host 0.0.0.0 --port $PORT"
+    buildCommand: "cd backend && pip install -r requirements-super-simple.txt"
+    startCommand: "cd backend && python -m uvicorn simple_main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: OPENAI_API_KEY
         value: your-openai-api-key-here

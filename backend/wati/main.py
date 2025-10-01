@@ -8,8 +8,8 @@ from sqlalchemy.future import select
 from sqlalchemy import select, func
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from .database import database
-# Temporarily commenting out routes to isolate 502 error
+# Temporarily commenting out all imports to isolate 502 error
+# from .database import database
 # from .routes import user, broadcast, contacts, auth, woocommerce, integration, wallet, analytics, ai
 # from .services import dramatiq_router
 # from . import oauth2
@@ -20,11 +20,10 @@ app = FastAPI(title="Wotnot AI Template System", version="1.0.0")
 scheduler = AsyncIOScheduler()
 scheduler_started = False
 
-# Models creation
+# Models creation - temporarily disabled for 502 debugging
 async def create_db_and_tables():
-    await database.ensure_database_ready()
-    async with database.engine.begin() as conn:
-        await conn.run_sync(database.Base.metadata.create_all)
+    print("Database creation skipped for debugging")
+    pass
 
 # Adding the routes - temporarily commented out to isolate 502 error
 # app.include_router(broadcast.router)
@@ -81,20 +80,11 @@ async def close_expired_chats() -> None:
 async def startup_event() -> None:
     """
     Event triggered when the application starts.
-    Initialize database and start scheduler.
+    Minimal startup - bypassing database for 502 debugging.
     """
-    global scheduler_started
     try:
-        # Initialize database
-        await create_db_and_tables()
-        print("Database initialized successfully")
-        
-        # Start scheduler - temporarily disabled to isolate 502 error
-        # if not scheduler_started:
-        #     scheduler.add_job(close_expired_chats, 'interval', minutes=1)
-        #     scheduler.start()
-        #     scheduler_started = True
-        print("Scheduler temporarily disabled for debugging")
+        print("Minimal startup - database and scheduler disabled for debugging")
+        print("FastAPI app should now respond to basic endpoints")
     except Exception as e:
         print(f"Startup error: {e}")
 

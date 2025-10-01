@@ -2,47 +2,28 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from .database import database
-from .routes import user, broadcast, contacts, auth, woocommerce, integration, wallet,analytics
-from .routes import ai
-from .services import dramatiq_router
-from . import oauth2
-from wati.models.ChatBox import Last_Conversation
-from .models import ChatBox
-from datetime import datetime, timedelta
-from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from datetime import datetime, timedelta
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# Assuming `ChatBox` and `database` are already imported
-app = FastAPI()
+from .database import database
+from .routes import user, broadcast, contacts, auth, woocommerce, integration, wallet, analytics, ai
+from .services import dramatiq_router
+from . import oauth2
+from .models import ChatBox
+
+# Create FastAPI app instance
+app = FastAPI(title="Wotnot AI Template System", version="1.0.0")
 scheduler = AsyncIOScheduler()
+scheduler_started = False
 
 # Models creation
-
-
-
 async def create_db_and_tables():
     await database.ensure_database_ready()
     async with database.engine.begin() as conn:
         await conn.run_sync(database.Base.metadata.create_all)
-
-
-
-# database.Base.metadata.create_all(bind=database.engine)
-
-app = FastAPI()
-
-@app.on_event("startup")
-async def startup_event():
-    await create_db_and_tables()
 
 # Adding the routes
 app.include_router(broadcast.router)
@@ -78,15 +59,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Set up the schedule
-from datetime import datetime, timedelta, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from contextlib import asynccontextmanager
-
-scheduler = AsyncIOScheduler()
-scheduler_started = False
+# Chat cleanup scheduler setup
 
 
 async def close_expired_chats() -> None:
@@ -126,14 +99,22 @@ async def close_expired_chats() -> None:
 async def startup_event() -> None:
     """
     Event triggered when the application starts.
-    Starts the scheduler if not already started.
+    Initialize database and start scheduler.
     """
     global scheduler_started
-    if not scheduler_started:
-        scheduler.add_job(close_expired_chats, 'interval', minutes=1)
-        scheduler.start()
-        scheduler_started = True
-        print("Scheduler started.")
+    try:
+        # Initialize database
+        await create_db_and_tables()
+        print("Database initialized successfully")
+        
+        # Start scheduler
+        if not scheduler_started:
+            scheduler.add_job(close_expired_chats, 'interval', minutes=1)
+            scheduler.start()
+            scheduler_started = True
+            print("Scheduler started successfully")
+    except Exception as e:
+        print(f"Startup error: {e}")
 
 
 @app.on_event("shutdown")

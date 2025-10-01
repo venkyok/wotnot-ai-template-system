@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: wotnot-backend
+    runtime: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && python -m uvicorn direct_main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: OPENAI_API_KEY
+        value: your-openai-api-key-here
+      - key: SECRET_KEY  
+        value: your-secret-key-here
+      - key: DATABASE_URL
+        value: sqlite:///./wati.db
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30000"

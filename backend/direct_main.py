@@ -9,10 +9,11 @@ app = FastAPI(title="Wotnot Backend", version="1.0.0")
 @app.get("/")
 def read_root():
     return {
-        "message": "Wotnot AI Template System API", 
+        "message": "Wotnot AI Template System API - Direct Entry Point", 
         "status": "running", 
         "docs": "/docs",
-        "environment": "railway"
+        "environment": "railway",
+        "version": "1.0.1"
     }
 
 @app.get("/health")

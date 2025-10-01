@@ -1,10 +1,16 @@
 """
 Direct entry point for Railway - bypasses potential module import issues
 """
-from fastapi import FastAPI
 import os
+import sys
+from fastapi import FastAPI
 
-app = FastAPI(title="Wotnot Backend", version="1.0.0")
+print("🚀 Starting Wotnot Backend...")
+print(f"Python version: {sys.version}")
+print(f"Working directory: {os.getcwd()}")
+print(f"PORT environment variable: {os.getenv('PORT', 'not set')}")
+
+app = FastAPI(title="Wotnot Backend", version="1.0.1")
 
 @app.get("/")
 def read_root():
@@ -37,4 +43,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("Direct entry FastAPI app created successfully")
+print("✅ Direct entry FastAPI app created successfully")
+print("🌐 CORS middleware added")
+print("📡 Ready to accept connections...")
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    print(f"🚀 Starting uvicorn on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
